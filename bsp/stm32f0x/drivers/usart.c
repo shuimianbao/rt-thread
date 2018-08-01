@@ -32,6 +32,13 @@
 #define UART2_GPIO_AF			GPIO_AF_1
 #define UART2_GPIO				GPIOA
 
+/* USART3 */
+#define UART3_GPIO_TX			GPIO_Pin_10
+#define UART3_GPIO_TX_SOURCE	GPIO_PinSource10
+#define UART3_GPIO_RX			GPIO_Pin_11
+#define UART3_GPIO_RX_SOURCE	GPIO_PinSource11
+#define UART3_GPIO_AF			GPIO_AF_4
+#define UART3_GPIO				GPIOB
 /* STM32 uart driver */
 struct stm32_uart
 {
@@ -196,6 +203,38 @@ void USART2_IRQHandler(void)
 }
 #endif /* RT_USING_UART2 */
 
+#if defined(RT_USING_UART3)
+/* UART2 device driver structure */
+struct stm32_uart uart3 =
+{
+    USART3,
+    USART3_4_IRQn,
+};
+struct rt_serial_device serial3;
+
+void USART2_IRQHandler(void)
+{
+    struct stm32_uart* uart;
+
+    uart = &uart3;
+
+    /* enter interrupt */
+    rt_interrupt_enter();
+    if(USART_GetITStatus(uart->uart_device, USART_IT_RXNE) != RESET)
+    {
+        rt_hw_serial_isr(&serial3, RT_SERIAL_EVENT_RX_IND);
+    }
+    if (USART_GetITStatus(uart->uart_device, USART_IT_TC) != RESET)
+    {
+        /* clear interrupt */
+        USART_ClearITPendingBit(uart->uart_device, USART_IT_TC);
+    }
+
+    /* leave interrupt */
+    rt_interrupt_leave();
+}
+#endif /* RT_USING_UART3 */
+
 static void RCC_Configuration(void)
 {
 #ifdef RT_USING_UART1
@@ -211,7 +250,13 @@ static void RCC_Configuration(void)
     /* Enable USART clock */
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2, ENABLE);
 #endif /* RT_USING_UART2 */
-
+	
+#ifdef RT_USING_UART3
+    /* Enable GPIO clock */
+    RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOB, ENABLE);
+    /* Enable USART clock */
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART3, ENABLE);
+#endif /* RT_USING_UART3 */
 }
 
 static void GPIO_Configuration(void)
@@ -249,6 +294,22 @@ static void GPIO_Configuration(void)
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
 	GPIO_Init(UART2_GPIO, &GPIO_InitStructure);
 #endif /* RT_USING_UART2 */
+
+#ifdef RT_USING_UART3
+	/* Connect PXx to USARTx_Tx */
+	GPIO_PinAFConfig(UART3_GPIO, UART3_GPIO_TX_SOURCE, UART3_GPIO_AF);
+
+	/* Connect PXx to USARTx_Rx */
+	GPIO_PinAFConfig(UART3_GPIO, UART3_GPIO_RX_SOURCE, UART3_GPIO_AF);
+
+	/* Configure USART Tx, Rx as alternate function push-pull */
+	GPIO_InitStructure.GPIO_Pin = UART3_GPIO_TX | UART3_GPIO_RX;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
+	GPIO_Init(UART3_GPIO, &GPIO_InitStructure);
+#endif /* RT_USING_UART3 */
 }
 
 static void NVIC_Configuration(struct stm32_uart* uart)
@@ -296,6 +357,21 @@ void rt_hw_usart_init(void)
 
     /* register UART1 device */
     rt_hw_serial_register(&serial2, "uart2",
+                          RT_DEVICE_FLAG_RDWR | RT_DEVICE_FLAG_INT_RX,
+                          uart);
+#endif /* RT_USING_UART2 */
+
+#ifdef RT_USING_UART3
+    uart = &uart3;
+
+    config.baud_rate = BAUD_RATE_115200;
+    serial3.ops    = &stm32_uart_ops;
+    serial3.config = config;
+
+    NVIC_Configuration(&uart3);
+
+    /* register UART1 device */
+    rt_hw_serial_register(&serial3, "uart3",
                           RT_DEVICE_FLAG_RDWR | RT_DEVICE_FLAG_INT_RX,
                           uart);
 #endif /* RT_USING_UART2 */
