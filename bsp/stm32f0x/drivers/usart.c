@@ -374,5 +374,5 @@ void rt_hw_usart_init(void)
     rt_hw_serial_register(&serial3, "uart3",
                           RT_DEVICE_FLAG_RDWR | RT_DEVICE_FLAG_INT_RX,
                           uart);
-#endif /* RT_USING_UART2 */
+#endif /* RT_USING_UART3 */
 }
