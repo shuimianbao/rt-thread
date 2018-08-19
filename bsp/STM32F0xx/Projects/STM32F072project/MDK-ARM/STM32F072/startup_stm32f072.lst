@@ -433,11 +433,11 @@ ARM Macro Assembler    Page 7
               00000000 
 Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M0 --apcs=interw
 ork --depend=stm32f072\startup_stm32f072.d -ostm32f072\startup_stm32f072.o -I.\
-RTE\_STM32F072 -ID:\D\Keil_v5\ARM\PACK\Keil\STM32F0xx_DFP\2.0.0\Drivers\CMSIS\D
-evice\ST\STM32F0xx\Include -ID:\D\Keil_v5\ARM\CMSIS\Include --predefine="__MICR
-OLIB SETA 1" --predefine="__UVISION_VERSION SETA 525" --predefine="STM32F072xB 
-SETA 1" --list=.\stm32f072\startup_stm32f072.lst ..\..\..\Libraries\CMSIS\Devic
-e\ST\STM32F0xx\Source\Templates\arm\startup_stm32f072.s
+RTE\_STM32F072 -IC:\Keil_v5\ARM\PACK\Keil\STM32F0xx_DFP\2.0.0\Drivers\CMSIS\Dev
+ice\ST\STM32F0xx\Include -IC:\Keil_v5\ARM\CMSIS\Include --predefine="__MICROLIB
+ SETA 1" --predefine="__UVISION_VERSION SETA 525" --predefine="STM32F072xB SETA
+ 1" --list=.\stm32f072\startup_stm32f072.lst ..\..\..\Libraries\CMSIS\Device\ST
+\STM32F0xx\Source\Templates\arm\startup_stm32f072.s
 
 
 

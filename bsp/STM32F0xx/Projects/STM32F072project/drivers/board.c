@@ -133,7 +133,7 @@ void rt_hw_board_init()
 	NVIC_Configuration();
 
 	/* Configure the SysTick */
-	RCC_Configuration();
+	//RCC_Configuration();
 	SysTick_Config(SystemCoreClock / RT_TICK_PER_SECOND);
 
 	/* Initial usart deriver, and set console device */
