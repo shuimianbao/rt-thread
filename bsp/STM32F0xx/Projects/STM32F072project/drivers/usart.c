@@ -212,7 +212,7 @@ struct stm32_uart uart3 =
 };
 struct rt_serial_device serial3;
 
-void USART2_IRQHandler(void)
+void USART3_4_IRQHandler(void)
 {
     struct stm32_uart* uart;
 
