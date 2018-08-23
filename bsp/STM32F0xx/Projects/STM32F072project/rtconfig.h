@@ -19,7 +19,17 @@
 #define RT_DEBUG
 #define RT_DEBUG_INIT 1
 #define RT_USING_OVERFLOW_CHECK
-
+/*
+#define RT_DEBUG_MEM                   1
+#define RT_DEBUG_MEMHEAP               1
+#define RT_DEBUG_MODULE                1
+#define RT_DEBUG_SCHEDULER             1
+#define RT_DEBUG_SLAB                  1
+#define RT_DEBUG_THREAD                1
+#define RT_DEBUG_TIMER                 1
+#define RT_DEBUG_IRQ                   1
+#define RT_DEBUG_IPC				   1
+*/
 /* Using Hook */
 /* #define RT_USING_HOOK */
 

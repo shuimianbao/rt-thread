@@ -697,8 +697,7 @@ rt_err_t rt_thread_resume(rt_thread_t thread)
 
     if ((thread->stat & RT_THREAD_STAT_MASK) != RT_THREAD_SUSPEND)
     {
-        RT_DEBUG_LOG(RT_DEBUG_THREAD, ("thread resume: thread disorder, %d\n",
-                                       thread->stat));
+        RT_DEBUG_LOG(RT_DEBUG_THREAD, ("thread resume: thread disorder, %d\n", thread->stat));
 
         return -RT_ERROR;
     }
