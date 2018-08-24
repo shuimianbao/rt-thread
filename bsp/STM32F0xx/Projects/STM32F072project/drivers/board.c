@@ -136,6 +136,7 @@ void rt_hw_board_init()
 	//RCC_Configuration();
 	SysTick_Config(SystemCoreClock / RT_TICK_PER_SECOND);
 
+	OutputMCO();
 	/* Initial usart deriver, and set console device */
 	rt_hw_usart_init();
 #ifdef RT_USING_CONSOLE
@@ -151,4 +152,24 @@ void rt_hw_board_init()
 #endif
 }
 
+void OutputMCO(void)
+{
+	//output sysclk on MCO PIN on PA8
+	GPIO_InitTypeDef GPIO_InitStructure;
+	
+		 /* Output HSE clock on MCO1 pin(PA8) ****************************************/     
+  /* Enable the GPIOA Clock */
+  RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE);
+
+  /* MCO pin configuration: PA8 */
+  GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+  GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_UP;
+  GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_8;
+  GPIO_Init(GPIOA, &GPIO_InitStructure);
+
+  GPIO_PinAFConfig(GPIOA, GPIO_PinSource8, GPIO_AF_0);
+	RCC_MCOConfig(RCC_MCOSource_SYSCLK, RCC_MCOPrescaler_1);  
+}
 /*@}*/

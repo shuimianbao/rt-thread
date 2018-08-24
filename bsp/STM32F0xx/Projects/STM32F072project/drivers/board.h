@@ -48,6 +48,8 @@ void rt_hw_msd_init(void);
 
 #define PRINT_RCC_FREQ_INFO
 
+void OutputMCO(void);
+
 #endif
 
 /* <<< Use Configuration Wizard in Context Menu >>>*/

@@ -28,13 +28,15 @@
 /* led thread entry */
 static void led_thread_entry(void* parameter)
 {
+	rt_hw_led_init();
+
 	while(1)
 	{
         rt_hw_led_on();
-        rt_thread_delay(RT_TICK_PER_SECOND/10);
+        rt_thread_delay(RT_TICK_PER_SECOND);
 
         rt_hw_led_off();
-        rt_thread_delay(RT_TICK_PER_SECOND/10);
+        rt_thread_delay(RT_TICK_PER_SECOND);
 	}
 }
 
