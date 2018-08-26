@@ -2826,7 +2826,7 @@
               <MiscControls>--C99</MiscControls>
               <Define>USE_STDPERIPH_DRIVER,STM32F072,USE_STM32072B_EVAL,USE_DEFAULT_TIMEOUT_CALLBACK</Define>
               <Undefine></Undefine>
-              <IncludePath>..\;..\applications;..\drivers;..\..\..\Libraries\CMSIS\Device\ST\STM32F0xx\Include;..\..\..\Libraries\STM32F0xx_StdPeriph_Driver\inc;..\..\..\Libraries\STM32F0xx_CPAL_Driver\inc;..\..\..\Utilities\STM32_EVAL\Common;..\..\..\Utilities\STM32_EVAL\STM32072B_EVAL;..\..\..\Libraries\CMSIS\Include;..\..\..\..\..\include;..\..\..\..\..\libcpu\arm\cortex-m0;..\..\..\..\..\libcpu\arm\common;..\..\..\..\..\components\drivers\include;..\..\..\..\..\components\finsh</IncludePath>
+              <IncludePath>..\;..\applications;..\drivers;..\..\..\Libraries\CMSIS\Device\ST\STM32F0xx\Include;..\..\..\Libraries\STM32F0xx_StdPeriph_Driver\inc;..\..\..\Libraries\STM32F0xx_CPAL_Driver\inc;..\..\..\Utilities\STM32_EVAL\Common;..\..\..\Utilities\STM32_EVAL\STM32072B_EVAL;..\..\..\Libraries\CMSIS\Include;..\..\..\..\..\include;..\..\..\..\..\libcpu\arm\cortex-m0;..\..\..\..\..\libcpu\arm\common;..\..\..\..\..\components\drivers\include;..\..\..\..\..\components\finsh;..\..\..\..\..\components\dfs\include</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>

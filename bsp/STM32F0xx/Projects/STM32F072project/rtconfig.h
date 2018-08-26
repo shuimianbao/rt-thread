@@ -82,7 +82,7 @@
 /* the buffer size of console*/
 #define RT_CONSOLEBUF_SIZE	128
 // <string name="RT_CONSOLE_DEVICE_NAME" description="The device name for console" default="uart3" />
-#define RT_CONSOLE_DEVICE_NAME	    "uart2"
+#define RT_CONSOLE_DEVICE_NAME	    "uart3"
 
 
 
@@ -91,10 +91,12 @@
 /* configure finsh parameters */
 #define FINSH_THREAD_PRIORITY 25
 #define FINSH_THREAD_STACK_SIZE	1024
-#define FINSH_HISTORY_LINES	1
+
+#define FINSH_USING_HISTORY
+#define FINSH_HISTORY_LINES	10
 /* Using symbol table */
-//#define FINSH_USING_SYMTAB
-//#define FINSH_USING_DESCRIPTION
+#define FINSH_USING_SYMTAB
+#define FINSH_USING_DESCRIPTION
 #define FINSH_USING_MSH
 #define FINSH_USING_MSH_ONLY
 
@@ -102,7 +104,7 @@
 // #define RT_USING_LIBC
 
 /* SECTION: device filesystem */
-/* #define RT_USING_DFS */
+//#define RT_USING_DFS
 //#define RT_USING_DFS_ELMFAT
 #define RT_DFS_ELM_WORD_ACCESS
 /* Reentrancy (thread safe) of the FatFs module.  */

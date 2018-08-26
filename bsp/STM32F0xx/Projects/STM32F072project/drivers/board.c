@@ -58,6 +58,7 @@ static void Delay(__IO uint32_t nCount)
  * sysclk source is pllclk
  * AHB prescaler is 1, HCLK = SYSCKL = SystemCoreClock = 48MHZ
  */
+#if 0 //using system_stm32f0xx.c systeminit()
 static void RCC_Configuration(void)
 {
 	RCC_DeInit();
@@ -75,7 +76,7 @@ static void RCC_Configuration(void)
 	/* Update SystemCoreClock value from RCC configure */
 	SystemCoreClockUpdate();
 }
-
+#endif
 #ifdef PRINT_RCC_FREQ_INFO
 /**
  * print RCC freq information
@@ -136,7 +137,7 @@ void rt_hw_board_init()
 	//RCC_Configuration();
 	SysTick_Config(SystemCoreClock / RT_TICK_PER_SECOND);
 
-	OutputMCO();
+	//OutputMCO();
 	/* Initial usart deriver, and set console device */
 	rt_hw_usart_init();
 #ifdef RT_USING_CONSOLE
