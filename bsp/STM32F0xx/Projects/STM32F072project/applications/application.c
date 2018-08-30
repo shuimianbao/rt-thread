@@ -42,7 +42,7 @@ static void led_thread_entry(void* parameter)
 
 static void rt_init_thread_entry(void* parameter)
 {
-	rt_thread_t led_thread;
+	rt_thread_t led_thread,test_thread1,test_thread2;
 
 /* Initialization RT-Thread Components */
 #ifdef RT_USING_COMPONENTS_INIT
@@ -60,6 +60,7 @@ static void rt_init_thread_entry(void* parameter)
     		256, 20, 20);
     if(led_thread != RT_NULL)
     	rt_thread_startup(led_thread);
+	
 }
 
 int rt_application_init()

@@ -415,6 +415,11 @@
               <FileType>1</FileType>
               <FilePath>..\drivers\usart.c</FilePath>
             </File>
+            <File>
+              <FileName>oled.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\drivers\oled.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -1581,6 +1586,11 @@
               <FileName>usart.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\drivers\usart.c</FilePath>
+            </File>
+            <File>
+              <FileName>oled.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\drivers\oled.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -2905,6 +2915,11 @@
               <FileType>1</FileType>
               <FilePath>..\drivers\usart.c</FilePath>
             </File>
+            <File>
+              <FileName>oled.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\drivers\oled.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -3971,6 +3986,11 @@
               <FileName>usart.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\drivers\usart.c</FilePath>
+            </File>
+            <File>
+              <FileName>oled.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\drivers\oled.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -5292,6 +5312,11 @@
               <FileType>1</FileType>
               <FilePath>..\drivers\usart.c</FilePath>
             </File>
+            <File>
+              <FileName>oled.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\drivers\oled.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -6356,6 +6381,11 @@
               <FileName>usart.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\drivers\usart.c</FilePath>
+            </File>
+            <File>
+              <FileName>oled.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\drivers\oled.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -7424,6 +7454,11 @@
               <FileType>1</FileType>
               <FilePath>..\drivers\usart.c</FilePath>
             </File>
+            <File>
+              <FileName>oled.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\drivers\oled.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -8490,6 +8525,11 @@
               <FileName>usart.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\drivers\usart.c</FilePath>
+            </File>
+            <File>
+              <FileName>oled.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\drivers\oled.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -9558,6 +9598,11 @@
               <FileName>usart.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\drivers\usart.c</FilePath>
+            </File>
+            <File>
+              <FileName>oled.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\drivers\oled.c</FilePath>
             </File>
           </Files>
         </Group>
