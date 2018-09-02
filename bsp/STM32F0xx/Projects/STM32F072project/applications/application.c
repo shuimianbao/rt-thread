@@ -24,6 +24,7 @@
 #include <rtthread.h>
 
 #include "led.h"
+#include "oled.h"
 
 /* led thread entry */
 static void led_thread_entry(void* parameter)
@@ -42,7 +43,7 @@ static void led_thread_entry(void* parameter)
 
 static void rt_init_thread_entry(void* parameter)
 {
-	rt_thread_t led_thread,test_thread1,test_thread2;
+	rt_thread_t led_thread,oled_thread;
 
 /* Initialization RT-Thread Components */
 #ifdef RT_USING_COMPONENTS_INIT
@@ -60,6 +61,12 @@ static void rt_init_thread_entry(void* parameter)
     		256, 20, 20);
     if(led_thread != RT_NULL)
     	rt_thread_startup(led_thread);
+
+	oled_thread = rt_thread_create("oled",
+    		OLED_thread_entry, RT_NULL,
+    		256, 20, 20);
+    if(oled_thread != RT_NULL)
+    	rt_thread_startup(oled_thread);
 	
 }
 
