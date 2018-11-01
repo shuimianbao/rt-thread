@@ -420,6 +420,11 @@
               <FileType>1</FileType>
               <FilePath>..\drivers\oled.c</FilePath>
             </File>
+            <File>
+              <FileName>wifi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\drivers\wifi.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -1591,6 +1596,11 @@
               <FileName>oled.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\drivers\oled.c</FilePath>
+            </File>
+            <File>
+              <FileName>wifi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\drivers\wifi.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -2920,6 +2930,11 @@
               <FileType>1</FileType>
               <FilePath>..\drivers\oled.c</FilePath>
             </File>
+            <File>
+              <FileName>wifi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\drivers\wifi.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -3991,6 +4006,11 @@
               <FileName>oled.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\drivers\oled.c</FilePath>
+            </File>
+            <File>
+              <FileName>wifi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\drivers\wifi.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -5317,6 +5337,11 @@
               <FileType>1</FileType>
               <FilePath>..\drivers\oled.c</FilePath>
             </File>
+            <File>
+              <FileName>wifi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\drivers\wifi.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -6386,6 +6411,11 @@
               <FileName>oled.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\drivers\oled.c</FilePath>
+            </File>
+            <File>
+              <FileName>wifi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\drivers\wifi.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -7459,6 +7489,11 @@
               <FileType>1</FileType>
               <FilePath>..\drivers\oled.c</FilePath>
             </File>
+            <File>
+              <FileName>wifi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\drivers\wifi.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -8530,6 +8565,11 @@
               <FileName>oled.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\drivers\oled.c</FilePath>
+            </File>
+            <File>
+              <FileName>wifi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\drivers\wifi.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -9603,6 +9643,11 @@
               <FileName>oled.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\drivers\oled.c</FilePath>
+            </File>
+            <File>
+              <FileName>wifi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\drivers\wifi.c</FilePath>
             </File>
           </Files>
         </Group>

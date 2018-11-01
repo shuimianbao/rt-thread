@@ -25,7 +25,9 @@
 
 #include "led.h"
 #include "oled.h"
+#include "wifi.h"
 
+extern rt_thread_t wifi_thread;
 /* led thread entry */
 static void led_thread_entry(void* parameter)
 {
@@ -67,6 +69,12 @@ static void rt_init_thread_entry(void* parameter)
     		256, 20, 20);
     if(oled_thread != RT_NULL)
     	rt_thread_startup(oled_thread);
+
+	wifi_thread = rt_thread_create("wifi",
+    		wifi_thread_entry, RT_NULL,
+    		256, 20, 20);
+    if(wifi_thread != RT_NULL)
+    	rt_thread_startup(wifi_thread);
 	
 }
 
