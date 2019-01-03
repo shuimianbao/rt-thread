@@ -8,8 +8,47 @@ __IO uint8_t*  sEEDataWritePointer;
 __IO uint8_t   sEEDataNum;
 rt_thread_t eeprom_thread;
 
-uint8_t writebuf[] = "ABCDEFG";
-uint8_t readbuf[100];
+//uint8_t writebuf[] = "ABCDEFG";
+
+uint8_t aTxBuffer1[] = "/* STM32F40xx I2C Firmware Library EEPROM driver example: \
+                        buffer 1 transfer into address sEE_WRITE_ADDRESS1 */ \
+                        Example Description \
+                        This firmware provides a basic example of how to use the I2C firmware library and\
+                        an associate I2C EEPROM driver to communicate with an I2C EEPROM device (here the\
+                        example is interfacing with M24C64 EEPROM)\
+                          \
+                        I2C peripheral is configured in Master transmitter during write operation and in\
+                        Master receiver during read operation from I2C EEPROM. \
+                          \
+                        The peripheral used is I2C1 but can be configured by modifying the defines values\
+                        in stm324xg_eval.h file. The speed is set to 100kHz and can be configured by \
+                        modifying the relative define in stm32_eval_i2c_ee.h file.\
+                         \
+                        For M24C64 devices all the memory is accessible through the two-bytes \
+                        addressing mode and need to define block addresses. In this case, only the physical \
+                        address has to be defined (according to the address pins (E0,E1 and E2) connection).\
+                        This address is defined in i2c_ee.h (default is 0xA0: E0, E1 and E2 tied to ground).\
+                        The EEPROM addresses where the program start the write and the read operations \
+                        is defined in the main.c file. \
+                         \
+                        First, the content of Tx1_Buffer is written to the EEPROM_WriteAddress1 and the\
+                        written data are read. The written and the read buffers data are then compared.\
+                        Following the read operation, the program waits that the EEPROM reverts to its \
+                        Standby state. A second write operation is, then, performed and this time, Tx2_Buffer\
+                        is written to EEPROM_WriteAddress2, which represents the address just after the last \
+                        written one in the first write. After completion of the second write operation, the \
+                        written data are read. The contents of the written and the read buffers are compared.\
+                         \
+                        All transfers are managed in DMA mode (except when 1-byte read/write operation is\
+                        required). Once sEE_ReadBuffer() or sEE_WriteBuffer() function is called, the \
+                        use application may perform other tasks in parallel while Read/Write operation is\
+                        managed by DMA.\
+                          \
+                        This example provides the possibility to use the STM324xG-EVAL LCD screen for\
+                        messages display (transfer status: Ongoing, PASSED, FAILED).\
+                        To enable this option uncomment the define ENABLE_LCD_MSG_DISPLAY in the main.c\
+                        file.                                                                              ";
+uint8_t readbuf[sizeof(aTxBuffer1)];
 static void sEE_Init(void)
 { 
   I2C_InitTypeDef  I2C_InitStructure;
@@ -94,13 +133,16 @@ void sEE_WriteBuffer(uint8_t* pBuffer, uint16_t WriteAddr, uint16_t NumByteToWri
       sEEDataNum = NumOfSingle;
       /* Start writing data */
       sEE_WritePage(pBuffer, WriteAddr, (uint8_t*)(&sEEDataNum));
+#if 0
       /* Wait transfer through DMA to be complete */
       sEETimeout = sEE_LONG_TIMEOUT;
       while (sEEDataNum > 0)
       {
         if((sEETimeout--) == 0) {sEE_TIMEOUT_UserCallback(); return;};
       }
+#endif
       sEE_WaitEepromStandbyState();
+			
     }
     /*!< If NumByteToWrite > sEE_PAGESIZE */
     else  
@@ -110,12 +152,14 @@ void sEE_WriteBuffer(uint8_t* pBuffer, uint16_t WriteAddr, uint16_t NumByteToWri
         /* Store the number of data to be written */
         sEEDataNum = sEE_PAGESIZE;        
         sEE_WritePage(pBuffer, WriteAddr, (uint8_t*)(&sEEDataNum)); 
+#if 0
         /* Wait transfer through DMA to be complete */
         sEETimeout = sEE_LONG_TIMEOUT;
         while (sEEDataNum > 0)
         {
           if((sEETimeout--) == 0) {sEE_TIMEOUT_UserCallback(); return;};
-        }      
+        }     
+#endif				
         sEE_WaitEepromStandbyState();
         WriteAddr +=  sEE_PAGESIZE;
         pBuffer += sEE_PAGESIZE;
@@ -126,12 +170,14 @@ void sEE_WriteBuffer(uint8_t* pBuffer, uint16_t WriteAddr, uint16_t NumByteToWri
         /* Store the number of data to be written */
         sEEDataNum = NumOfSingle;          
         sEE_WritePage(pBuffer, WriteAddr, (uint8_t*)(&sEEDataNum));
+#if 0
         /* Wait transfer through DMA to be complete */
         sEETimeout = sEE_LONG_TIMEOUT;
         while (sEEDataNum > 0)
         {
           if((sEETimeout--) == 0) {sEE_TIMEOUT_UserCallback(); return;};
-        }    
+        }   
+#endif				
         sEE_WaitEepromStandbyState();
       }
     }
@@ -150,24 +196,28 @@ void sEE_WriteBuffer(uint8_t* pBuffer, uint16_t WriteAddr, uint16_t NumByteToWri
         sEEDataNum = count;        
         /*!< Write the data contained in same page */
         sEE_WritePage(pBuffer, WriteAddr, (uint8_t*)(&sEEDataNum));
+#if 0
         /* Wait transfer through DMA to be complete */
         sEETimeout = sEE_LONG_TIMEOUT;
         while (sEEDataNum > 0)
         {
           if((sEETimeout--) == 0) {sEE_TIMEOUT_UserCallback(); return;};
-        }          
+        } 
+#endif				
         sEE_WaitEepromStandbyState();      
         
         /* Store the number of data to be written */
         sEEDataNum = (NumByteToWrite - count);          
         /*!< Write the remaining data in the following page */
         sEE_WritePage((uint8_t*)(pBuffer + count), (WriteAddr + count), (uint8_t*)(&sEEDataNum));
+#if 0
         /* Wait transfer through DMA to be complete */
         sEETimeout = sEE_LONG_TIMEOUT;
         while (sEEDataNum > 0)
         {
           if((sEETimeout--) == 0) {sEE_TIMEOUT_UserCallback(); return;};
         }     
+#endif
         sEE_WaitEepromStandbyState();        
       }      
       else      
@@ -196,12 +246,14 @@ void sEE_WriteBuffer(uint8_t* pBuffer, uint16_t WriteAddr, uint16_t NumByteToWri
         /* Store the number of data to be written */
         sEEDataNum = count;         
         sEE_WritePage(pBuffer, WriteAddr, (uint8_t*)(&sEEDataNum));
+#if 0
         /* Wait transfer through DMA to be complete */
         sEETimeout = sEE_LONG_TIMEOUT;
         while (sEEDataNum > 0)
         {
           if((sEETimeout--) == 0) {sEE_TIMEOUT_UserCallback(); return;};
-        }     
+        }   
+#endif				
         sEE_WaitEepromStandbyState();
         WriteAddr += count;
         pBuffer += count;
@@ -212,12 +264,14 @@ void sEE_WriteBuffer(uint8_t* pBuffer, uint16_t WriteAddr, uint16_t NumByteToWri
         /* Store the number of data to be written */
         sEEDataNum = sEE_PAGESIZE;          
         sEE_WritePage(pBuffer, WriteAddr, (uint8_t*)(&sEEDataNum));
+#if 0
         /* Wait transfer through DMA to be complete */
         sEETimeout = sEE_LONG_TIMEOUT;
         while (sEEDataNum > 0)
         {
           if((sEETimeout--) == 0) {sEE_TIMEOUT_UserCallback(); return;};
         }        
+#endif
         sEE_WaitEepromStandbyState();
         WriteAddr +=  sEE_PAGESIZE;
         pBuffer += sEE_PAGESIZE;  
@@ -227,12 +281,14 @@ void sEE_WriteBuffer(uint8_t* pBuffer, uint16_t WriteAddr, uint16_t NumByteToWri
         /* Store the number of data to be written */
         sEEDataNum = NumOfSingle;           
         sEE_WritePage(pBuffer, WriteAddr, (uint8_t*)(&sEEDataNum)); 
+#if 0
         /* Wait transfer through DMA to be complete */
         sEETimeout = sEE_LONG_TIMEOUT;
         while (sEEDataNum > 0)
         {
           if((sEETimeout--) == 0) {sEE_TIMEOUT_UserCallback(); return;};
-        }         
+        }    
+#endif				
         sEE_WaitEepromStandbyState();
       }
     }
@@ -603,14 +659,26 @@ uint32_t sEE_ReadBuffer(uint8_t* pBuffer, uint16_t ReadAddr, uint16_t NumByteToR
 
 void eeprom_thread_entry(void* parameter)
 {
-	//uint16_t i=0;
+	uint16_t i=0;
 	sEE_Init();
 	//rt_kprintf("extio_thread_entry running\n");
-	sEE_WriteBuffer(writebuf,0x0, sizeof(writebuf));
-	readbuf[0]= 0;
-	sEE_ReadBuffer(readbuf,0x0,sizeof(writebuf));
-	rt_kprintf("read eeprom: %s\n",readbuf);
-
+	sEE_WriteBuffer(aTxBuffer1,0x50, sizeof(aTxBuffer1));
+	for(i=0;i<sizeof(aTxBuffer1);i++)
+		readbuf[i]= 0;
+	sEE_ReadBuffer(readbuf,0x50,sizeof(aTxBuffer1));
+	
+	rt_kprintf("read eeprom: \n");
+	for(i=0;i<sizeof(aTxBuffer1);i++)
+	{
+		if(aTxBuffer1[i] != readbuf[i])
+		{
+			rt_kprintf("error %d,%c,%c: %s\n",i,aTxBuffer1[i],readbuf[i]);
+			break;
+		}
+		else
+			rt_kprintf("%c",readbuf[i]);
+	}
+	rt_kprintf("\nread end %d\n",sizeof(aTxBuffer1));
 	while(1)
 	{
 		//rt_thread_delay(RT_TICK_PER_SECOND*10);

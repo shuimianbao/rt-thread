@@ -22,7 +22,7 @@
 
 #include <board.h>
 #include <rtthread.h>
-#include "finsh.h"
+
 #include "led.h"
 #include "oled.h"
 #include "wifi.h"
@@ -63,7 +63,7 @@ static void rt_init_thread_entry(void* parameter)
     		256, 20, 20);
     if(led_thread != RT_NULL)
     	rt_thread_startup(led_thread);
-#if 0
+
 	oled_thread = rt_thread_create("oled",
     		OLED_thread_entry, RT_NULL,
     		256, 20, 20);
@@ -75,7 +75,7 @@ static void rt_init_thread_entry(void* parameter)
     		256, 20, 20);
     if(wifi_thread != RT_NULL)
     	rt_thread_startup(wifi_thread);
-#endif
+	
 }
 
 int rt_application_init()

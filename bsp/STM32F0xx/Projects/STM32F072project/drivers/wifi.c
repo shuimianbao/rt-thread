@@ -86,7 +86,6 @@ void wifi_thread_entry(void* parameter)
 	}
 }
 
-#if 0
 void WIFI_IRQHandler(void)
 {
   /* USART in mode Transmitter -------------------------------------------------*/
@@ -102,4 +101,3 @@ void WIFI_IRQHandler(void)
     
   }     
 }
-#endif
