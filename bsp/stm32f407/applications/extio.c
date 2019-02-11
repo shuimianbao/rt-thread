@@ -33,7 +33,7 @@ void Ext_Out_SetBits(uint16_t GPIO_Pin)
 void extio_thread_entry(void* parameter)
 {
 	Ext_Out_Config();
-	//rt_kprintf("extio_thread_entry running\n");
+	rt_kprintf("extio_thread_entry running\n");
 
 	while(1)
 	{
