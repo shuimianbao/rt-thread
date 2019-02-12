@@ -23,6 +23,7 @@
 #include "lte.h"
 #include "gps.h"
 #include "rs485.h"
+#include "lcd.h"
 
 #ifdef RT_USING_FINSH
 #include <shell.h>
@@ -75,11 +76,11 @@ void rt_init_thread_entry(void* parameter)
     	rt_thread_startup(eeprom_thread);
 		
 		/* Create gps thread */
-    gps_thread = rt_thread_create("gps",
-    		gps_thread_entry, RT_NULL,
-    		256, 20, 20);
-    if(gps_thread != RT_NULL)
-    	rt_thread_startup(gps_thread);
+//    gps_thread = rt_thread_create("gps",
+//    		gps_thread_entry, RT_NULL,
+//    		256, 20, 20);
+//    if(gps_thread != RT_NULL)
+//    	rt_thread_startup(gps_thread);
 		
 		/* Create lte thread */
     lte_thread = rt_thread_create("lte",
@@ -94,6 +95,13 @@ void rt_init_thread_entry(void* parameter)
     		256, 20, 20);
     if(rs485_thread != RT_NULL)
     	rt_thread_startup(rs485_thread);
+		
+		/* Create rs485 thread */
+    lcd_thread = rt_thread_create("lcd",
+    		lcd_thread_entry, RT_NULL,
+    		0x1000, 20, 20);
+    if(lcd_thread != RT_NULL)
+    	rt_thread_startup(lcd_thread);
     /* GDB STUB */
 #ifdef RT_USING_GDB
     gdb_set_device("uart6");
