@@ -23,5 +23,5 @@ void MainTask(void)
 
 	if(GUI_ALLOC_GetNumFreeBytes() < 3200) GUI_ErrorOut("Not enough memory available.");
 
-	while(1) {GUI_Delay(20);}
+	while(1) {GUI_Delay(1);}
 }

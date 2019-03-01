@@ -51,29 +51,29 @@ void rt_init_thread_entry(void* parameter)
     rtc_thread = rt_thread_create("rtc",
     		rtc_thread_entry, RT_NULL,
     		256, 20, 20);
-    if(rtc_thread != RT_NULL)
-    	rt_thread_startup(rtc_thread);
+    //if(rtc_thread != RT_NULL)
+    //	rt_thread_startup(rtc_thread);
 		
 		/* Create adc thread */
     adc_thread = rt_thread_create("adc",
     		adc_thread_entry, RT_NULL,
     		256, 20, 20);
-    if(adc_thread != RT_NULL)
-    	rt_thread_startup(adc_thread);
+    //if(adc_thread != RT_NULL)
+    //	rt_thread_startup(adc_thread);
 		
 		/* Create external output thread */
     extio_thread = rt_thread_create("ext_io",
     		extio_thread_entry, RT_NULL,
     		256, 20, 20);
-    if(extio_thread != RT_NULL)
-    	rt_thread_startup(extio_thread);
+    //if(extio_thread != RT_NULL)
+    //	rt_thread_startup(extio_thread);
 		
 		/* Create eeprom thread */
     eeprom_thread = rt_thread_create("eeprom",
     		eeprom_thread_entry, RT_NULL,
     		256, 20, 20);
-    if(eeprom_thread != RT_NULL)
-    	rt_thread_startup(eeprom_thread);
+    //if(eeprom_thread != RT_NULL)
+    //	rt_thread_startup(eeprom_thread);
 		
 		/* Create gps thread */
 //    gps_thread = rt_thread_create("gps",
@@ -85,21 +85,21 @@ void rt_init_thread_entry(void* parameter)
 		/* Create lte thread */
     lte_thread = rt_thread_create("lte",
     		lte_thread_entry, RT_NULL,
-    		256, 20, 20);
+    		256, 20, 10);
     if(lte_thread != RT_NULL)
     	rt_thread_startup(lte_thread);
 		
 		/* Create rs485 thread */
     rs485_thread = rt_thread_create("rs485",
     		RS485_thread_entry, RT_NULL,
-    		256, 20, 20);
+    		256, 20, 10);
     if(rs485_thread != RT_NULL)
     	rt_thread_startup(rs485_thread);
 		
 		/* Create rs485 thread */
     lcd_thread = rt_thread_create("lcd",
     		lcd_thread_entry, RT_NULL,
-    		0x1000, 20, 20);
+    		0x1000, 20, 10);
     if(lcd_thread != RT_NULL)
     	rt_thread_startup(lcd_thread);
     /* GDB STUB */
