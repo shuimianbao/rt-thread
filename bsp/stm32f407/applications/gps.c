@@ -207,4 +207,4 @@ void GPS_DMA_RX_IRQHandler(void)
 		GPS_Buf_Flag |= 0x10;
 		rt_sem_release(&gps_sem);
 	}
-}
+} 
