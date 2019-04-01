@@ -108,11 +108,8 @@ static void RS485_1_Config(void)
   GPIO_Init(RS485_1_DIR_PORT, &GPIO_InitStructure);
 	RS485_1_Dir_Set(RS485_RECV);
 	 
-	
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
 	/* NVIC configuration */
-  /* Configure the Priority Group to 2 bits */
-  NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
-  
   /* Enable the USARTx Interrupt */
   NVIC_InitStructure.NVIC_IRQChannel = RS485_1_IRQn;
   NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
@@ -239,9 +236,7 @@ static void RS485_2_Config(void)
 	 
 	
 	/* NVIC configuration */
-  /* Configure the Priority Group to 2 bits */
-  NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
-  
+ NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
   /* Enable the USARTx Interrupt */
   NVIC_InitStructure.NVIC_IRQChannel = RS485_2_IRQn;
   NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;

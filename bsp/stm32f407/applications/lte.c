@@ -86,9 +86,8 @@ static void LTE_COM_Config(void)
   GPIO_Init(LTE_COM_LINKA_PORT, &GPIO_InitStructure);	
 	
 	/* NVIC configuration */
-  /* Configure the Priority Group to 2 bits */
-  NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
   
+  NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
   /* Enable the USARTx Interrupt */
   NVIC_InitStructure.NVIC_IRQChannel = LTE_COM_IRQn;
   NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
