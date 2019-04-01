@@ -5,11 +5,17 @@
 #include "lte.h"
 
 rt_thread_t gps_thread;
+static rt_uint8_t GPS_DMA_RecBuf[BUFFERSIZE];
+static rt_uint8_t GPS_DMA_RecBuf_NewP=0;
+static rt_uint8_t GPS_DMA_RecBuf_OldP=0;
+static rt_uint8_t GPS_Buf_Flag=0;
+static  struct  rt_semaphore  gps_sem;
 static void GPS_COM_Config(void)
 {
-  USART_InitTypeDef USART_InitStructure;
-  NVIC_InitTypeDef NVIC_InitStructure;
+  	USART_InitTypeDef USART_InitStructure;
+  	NVIC_InitTypeDef NVIC_InitStructure;
 	GPIO_InitTypeDef GPIO_InitStructure;
+	DMA_InitTypeDef  DMA_InitStructure;
   /* USARTx configured as follows:
         - BaudRate = 115200 baud  
         - Word Length = 8 Bits
@@ -60,7 +66,7 @@ static void GPS_COM_Config(void)
   /* Enable the Tx buffer empty interrupt */
   //USART_ITConfig(RS485_1, USART_IT_TXE, ENABLE);
 	/* Enable the Tx buffer empty interrupt */
-  USART_ITConfig(GPS_COM, USART_IT_RXNE, ENABLE);  
+  //USART_ITConfig(GPS_COM, USART_IT_RXNE, ENABLE); //use DMA receive GPS data 
   
 /* GPIOG Peripheral clock enable */
   RCC_AHB1PeriphClockCmd(GPS_COM_RST_GPIO_CLK | GPS_COM_1PPS_GPIO_CLK, ENABLE);
@@ -77,31 +83,90 @@ static void GPS_COM_Config(void)
 	GPIO_InitStructure.GPIO_Pin = GPS_COM_1PSS_PIN;
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
   GPIO_Init(GPS_COM_1PPS_PORT, &GPIO_InitStructure);	 
-	
-	/* NVIC configuration */
-  /* Configure the Priority Group to 2 bits */
-  NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
+
+
+  /* Enable the DMA clock */
+  RCC_AHB1PeriphClockCmd(GPS_DMA_CLK, ENABLE);
+
+  /* Configure DMA Initialization Structure */
+  DMA_InitStructure.DMA_BufferSize = BUFFERSIZE ;
+  DMA_InitStructure.DMA_FIFOMode = DMA_FIFOMode_Disable ;
+  DMA_InitStructure.DMA_FIFOThreshold = DMA_FIFOThreshold_Full ;
+  DMA_InitStructure.DMA_MemoryBurst = DMA_MemoryBurst_Single ;
+  DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
+  DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
+  DMA_InitStructure.DMA_Mode = DMA_Mode_Circular;
+  DMA_InitStructure.DMA_PeripheralBaseAddr =(rt_uint32_t) (&(GPS_COM->DR)) ;
+  DMA_InitStructure.DMA_PeripheralBurst = DMA_PeripheralBurst_Single;
+  DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
+  DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
+  DMA_InitStructure.DMA_Priority = DMA_Priority_Low;
+  /* Configure TX DMA */
+  //DMA_InitStructure.DMA_Channel = USARTx_TX_DMA_CHANNEL ;
+  //DMA_InitStructure.DMA_DIR = DMA_DIR_MemoryToPeripheral ;
+  //DMA_InitStructure.DMA_Memory0BaseAddr =(uint32_t)aTxBuffer ;
+  //DMA_Init(USARTx_TX_DMA_STREAM,&DMA_InitStructure);
+  /* Configure RX DMA */
+  DMA_InitStructure.DMA_Channel = GPS_RX_DMA_CHANNEL ;
+  DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralToMemory ;
+  DMA_InitStructure.DMA_Memory0BaseAddr =(rt_uint32_t)GPS_DMA_RecBuf ; 
+  DMA_Init(GPS_RX_DMA_STREAM,&DMA_InitStructure);
+
+  /* Clear any pending flag on Rx Stream */
+  DMA_ClearFlag(GPS_RX_DMA_STREAM, GPS_RX_DMA_FLAG_FEIF | GPS_RX_DMA_FLAG_DMEIF | GPS_RX_DMA_FLAG_TEIF | \
+                                       GPS_RX_DMA_FLAG_HTIF | GPS_RX_DMA_FLAG_TCIF);
+
+  /* Enable the DMA Channels Interrupts */
+  DMA_ITConfig(GPS_RX_DMA_STREAM, DMA_IT_TC | DMA_IT_HT, ENABLE);
+
   
+  NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
   /* Enable the USARTx Interrupt */
-  NVIC_InitStructure.NVIC_IRQChannel = GPS_COM_IRQn;
+  //NVIC_InitStructure.NVIC_IRQChannel = GPS_COM_IRQn;
+  NVIC_InitStructure.NVIC_IRQChannel = GPS_DMA_RX_IRQn;
   NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
   NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
   NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
   NVIC_Init(&NVIC_InitStructure);
 	
-	/* Enable USART */
+	
+
+  DMA_Cmd(GPS_RX_DMA_STREAM,ENABLE);  
+  /* Enable USART DMA RX Requsts */
+  USART_DMACmd(GPS_COM, USART_DMAReq_Rx, ENABLE);
+  /* Enable USART */
   USART_Cmd(GPS_COM, ENABLE);
 }
 
 
 void gps_thread_entry(void* parameter)
 {
+	rt_err_t  result;
+	rt_uint8_t i;
 	GPS_COM_Config();
-
+	result  =  rt_sem_init(&gps_sem,  "gpssem",  0,  RT_IPC_FLAG_FIFO);
+	if  (result  !=  RT_EOK)
+	{
+		rt_kprintf("GPS sem init faild[%d]\n",result);
+	}
 	while(1)
 	{
 		//rt_thread_delay(RT_TICK_PER_SECOND*10);
 		//ShowADCResult();
+		 rt_sem_take(&gps_sem,  RT_WAITING_FOREVER);
+		 if(GPS_Buf_Flag & 0xf)//HT
+		 {
+		 	for(i=0;i<100;i++)
+				rt_kprintf("%c",GPS_DMA_RecBuf[i]);
+			GPS_Buf_Flag &=0xf0;
+		 }
+		  if(GPS_Buf_Flag & 0xf0)//TC
+		 {
+		 	for(i=100;i<200;i++)
+				rt_kprintf("%c",GPS_DMA_RecBuf[i]);
+			GPS_Buf_Flag &=0x0f;
+		 }
+		 rt_sem_release(&gps_sem);
 	}
 }
 
@@ -125,4 +190,21 @@ unsigned char ch;
       //USART_SendData(RS485_2, aTxBuffer[ubTxIndex++]);
    
   }
+}
+
+void GPS_DMA_RX_IRQHandler(void)
+{
+	if(DMA_GetITStatus(GPS_RX_DMA_STREAM,GPS_RX_DMA_FLAG_HTIF)==SET)
+	{
+		DMA_ClearITPendingBit(GPS_RX_DMA_STREAM,GPS_RX_DMA_FLAG_HTIF);
+		GPS_Buf_Flag |= 0x1;
+		rt_sem_release(&gps_sem);
+	}
+
+	if(DMA_GetITStatus(GPS_RX_DMA_STREAM,GPS_RX_DMA_FLAG_TCIF)==SET)
+	{
+		DMA_ClearITPendingBit(GPS_RX_DMA_STREAM,GPS_RX_DMA_FLAG_TCIF);
+		GPS_Buf_Flag |= 0x10;
+		rt_sem_release(&gps_sem);
+	}
 }
