@@ -50,6 +50,13 @@
 #define GPS_RX_DMA_FLAG_HTIF 		 DMA_FLAG_HTIF0
 #define GPS_RX_DMA_FLAG_TCIF 		 DMA_FLAG_TCIF0
 
+#define GPS_RX_DMA_IT_FEIF 		 	 DMA_FLAG_FEIF0
+#define GPS_RX_DMA_IT_DMEIF		 	DMA_IT_DMEIF0
+#define GPS_RX_DMA_IT_TEIF 		 	DMA_IT_TEIF0
+#define GPS_RX_DMA_IT_HTIF 		 	DMA_IT_HTIF0
+#define GPS_RX_DMA_IT_TCIF 		 	DMA_IT_TCIF0
+
+
 #define GPS_DMA_TX_IRQn				 DMA1_Stream7_IRQn
 #define GPS_DMA_RX_IRQn				 DMA1_Stream0_IRQn
 #define GPS_DMA_TX_IRQHandler		 DMA1_Stream7_IRQHandler
@@ -62,4 +69,8 @@ static void GPS_COM_Config(void);
 void gps_thread_entry(void* parameter);
 
 #endif
+
+
+
+
 

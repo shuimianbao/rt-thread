@@ -91,12 +91,12 @@ static void GPS_COM_Config(void)
   /* Configure DMA Initialization Structure */
   DMA_InitStructure.DMA_BufferSize = BUFFERSIZE ;
   DMA_InitStructure.DMA_FIFOMode = DMA_FIFOMode_Disable ;
-  DMA_InitStructure.DMA_FIFOThreshold = DMA_FIFOThreshold_1QuarterFull ;
+  DMA_InitStructure.DMA_FIFOThreshold = DMA_FIFOThreshold_Full ;
   DMA_InitStructure.DMA_MemoryBurst = DMA_MemoryBurst_Single ;
   DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
   DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
   DMA_InitStructure.DMA_Mode = DMA_Mode_Circular;
-  DMA_InitStructure.DMA_PeripheralBaseAddr =(rt_uint8_t) (&(GPS_COM->DR)) ;
+  DMA_InitStructure.DMA_PeripheralBaseAddr =(rt_uint32_t) (&(GPS_COM->DR)) ;
   DMA_InitStructure.DMA_PeripheralBurst = DMA_PeripheralBurst_Single;
   DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
   DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
@@ -109,7 +109,7 @@ static void GPS_COM_Config(void)
   /* Configure RX DMA */
   DMA_InitStructure.DMA_Channel = GPS_RX_DMA_CHANNEL ;
   DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralToMemory ;
-  DMA_InitStructure.DMA_Memory0BaseAddr =(rt_uint8_t)GPS_DMA_RecBuf ; 
+  DMA_InitStructure.DMA_Memory0BaseAddr =(rt_uint32_t)GPS_DMA_RecBuf ; 
   DMA_Init(GPS_RX_DMA_STREAM,&DMA_InitStructure);
 
   /* Clear any pending flag on Rx Stream */
@@ -194,17 +194,17 @@ unsigned char ch;
 
 void GPS_DMA_RX_IRQHandler(void)
 {
-	if(DMA_GetITStatus(GPS_RX_DMA_STREAM,GPS_RX_DMA_FLAG_HTIF)==SET)
+	if(DMA_GetITStatus(GPS_RX_DMA_STREAM,GPS_RX_DMA_IT_HTIF)==SET)
 	{
-		DMA_ClearITPendingBit(GPS_RX_DMA_STREAM,GPS_RX_DMA_FLAG_HTIF);
+		DMA_ClearITPendingBit(GPS_RX_DMA_STREAM,GPS_RX_DMA_IT_HTIF);
 		GPS_Buf_Flag |= 0x1;
 		rt_sem_release(&gps_sem);
 	}
 
-	if(DMA_GetITStatus(GPS_RX_DMA_STREAM,GPS_RX_DMA_FLAG_TCIF)==SET)
+	if(DMA_GetITStatus(GPS_RX_DMA_STREAM,GPS_RX_DMA_IT_TCIF)==SET)
 	{
-		DMA_ClearITPendingBit(GPS_RX_DMA_STREAM,GPS_RX_DMA_FLAG_TCIF);
+		DMA_ClearITPendingBit(GPS_RX_DMA_STREAM,GPS_RX_DMA_IT_TCIF);
 		GPS_Buf_Flag |= 0x10;
 		rt_sem_release(&gps_sem);
 	}
-}
+} 
