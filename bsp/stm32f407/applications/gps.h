@@ -62,7 +62,10 @@
 #define GPS_DMA_TX_IRQHandler		 DMA1_Stream7_IRQHandler
 #define GPS_DMA_RX_IRQHandler		 DMA1_Stream0_IRQHandler
 
-#define BUFFERSIZE 200
+#define GPSBUFFERSIZE 1024
+#define RMC_MAX_LEN		(70+5)
+#define MRC_SEARCH_NEW		0
+#define MRC_SEARCH_MEXT		1
 extern rt_thread_t gps_thread;
 
 static void GPS_COM_Config(void);

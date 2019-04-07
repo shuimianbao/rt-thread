@@ -1,15 +1,18 @@
 #include <rtthread.h>
 #include "stm32f4xx.h"
+#include "string.h"
 #include "gps.h"
 
 #include "lte.h"
 
 rt_thread_t gps_thread;
-static rt_uint8_t GPS_DMA_RecBuf[BUFFERSIZE];
+static rt_int8_t GPS_DMA_RecBuf[GPSBUFFERSIZE];
 static rt_uint8_t GPS_DMA_RecBuf_NewP=0;
 static rt_uint8_t GPS_DMA_RecBuf_OldP=0;
 static rt_uint8_t GPS_Buf_Flag=0;
 static  struct  rt_semaphore  gps_sem;
+static rt_int8_t GNMRC_Buf[80]={0};
+static rt_uint8_t GNMRC_Buf_Index = 0;
 static void GPS_COM_Config(void)
 {
   	USART_InitTypeDef USART_InitStructure;
@@ -89,7 +92,7 @@ static void GPS_COM_Config(void)
   RCC_AHB1PeriphClockCmd(GPS_DMA_CLK, ENABLE);
 
   /* Configure DMA Initialization Structure */
-  DMA_InitStructure.DMA_BufferSize = BUFFERSIZE ;
+  DMA_InitStructure.DMA_BufferSize = GPSBUFFERSIZE ;
   DMA_InitStructure.DMA_FIFOMode = DMA_FIFOMode_Disable ;
   DMA_InitStructure.DMA_FIFOThreshold = DMA_FIFOThreshold_Full ;
   DMA_InitStructure.DMA_MemoryBurst = DMA_MemoryBurst_Single ;
@@ -138,11 +141,37 @@ static void GPS_COM_Config(void)
   USART_Cmd(GPS_COM, ENABLE);
 }
 
-
+rt_uint8_t processdata(rt_uint8_t bufindex)
+{
+	rt_uint16_t start = bufindex;
+	rt_uint16_t end = bufindex + GPSBUFFERSIZE/2;
+	rt_uint16_t cp_st, cp_end,temp=0;
+	
+	while(start< end)
+	{
+		if(GPS_DMA_RecBuf[start] == '$')//search the first char '$'
+		{
+			if(((end-start)>= RMC_MAX_LEN) && ((strcmp(GPS_DMA_RecBuf[start+1], (const char *)("$GNRMC")) == 0)))//find the frame
+			{
+					cp_st = start;		
+					break;
+			}
+		}//if(GPS_DMA_RecBuf[start] == '$')
+		start++;
+	}//while(start< end)
+	if(start == end)//faild
+			return 0;
+	while(start< end)
+	{
+		if(GPS_DMA_RecBuf[start] == '\r')
+		start++;
+	}
+}
 void gps_thread_entry(void* parameter)
 {
 	rt_err_t  result;
 	rt_uint8_t i;
+rt_uint8_t MRC_Serach_flag = MRC_SEARCH_NEW;
 	GPS_COM_Config();
 	result  =  rt_sem_init(&gps_sem,  "gpssem",  0,  RT_IPC_FLAG_FIFO);
 	if  (result  !=  RT_EOK)
@@ -156,14 +185,18 @@ void gps_thread_entry(void* parameter)
 		 rt_sem_take(&gps_sem,  RT_WAITING_FOREVER);
 		 if(GPS_Buf_Flag & 0xf)//HT
 		 {
-		 	for(i=0;i<100;i++)
-				rt_kprintf("%c",GPS_DMA_RecBuf[i]);
+		 	//for(i=0;i<100;i++)
+			//	rt_kprintf("%c",GPS_DMA_RecBuf[i]);
+			// rt_kprintf("recv half len\n");
+			// i = 
 			GPS_Buf_Flag &=0xf0;
 		 }
 		  if(GPS_Buf_Flag & 0xf0)//TC
 		 {
-		 	for(i=100;i<200;i++)
-				rt_kprintf("%c",GPS_DMA_RecBuf[i]);
+		 	//for(i=100;i<200;i++)
+			//	rt_kprintf("%c",GPS_DMA_RecBuf[i]);
+			//rt_kprintf("recv all len\n");
+
 			GPS_Buf_Flag &=0x0f;
 		 }
 		 rt_sem_release(&gps_sem);
