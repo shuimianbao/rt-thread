@@ -146,6 +146,7 @@ rt_uint8_t processdata(rt_uint8_t bufindex)
 	rt_uint16_t start = bufindex;
 	rt_uint16_t end = bufindex + GPSBUFFERSIZE/2;
 	rt_uint16_t cp_st, cp_end,temp=0;
+	rt_uint16_t i;
 	
 	while(start< end)
 	{
@@ -164,8 +165,25 @@ rt_uint8_t processdata(rt_uint8_t bufindex)
 	while(start< end)
 	{
 		if(GPS_DMA_RecBuf[start] == '\r')
+		{
+			cp_end = start;
+			break;
+		}
 		start++;
 	}
+	
+	if(start == end)//faild
+			return 0;
+	memcpy(GNMRC_Buf,GPS_DMA_RecBuf+cp_st,cp_end-cp_st+1);
+
+	rt_kprintf("index=%d\n",bufindex);//test
+	for(i=0;i<cp_end-cp_st+1;i++)
+		rt_kprintf("%c",GNMRC_Buf[i]);
+
+	//prase GNMRC
+	
+	
+	
 }
 void gps_thread_entry(void* parameter)
 {
