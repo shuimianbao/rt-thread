@@ -1,6 +1,6 @@
 #include <rtthread.h>
 #include "stm32f4xx.h"
-#include "string.h"
+#include <string.h>
 #include "gps.h"
 
 #include "lte.h"
@@ -152,7 +152,7 @@ rt_uint8_t processdata(rt_uint8_t bufindex)
 	{
 		if(GPS_DMA_RecBuf[start] == '$')//search the first char '$'
 		{
-			if(((end-start)>= RMC_MAX_LEN) && ((strcmp(GPS_DMA_RecBuf[start+1], (const char *)("$GNRMC")) == 0)))//find the frame
+			if(((end-start)>= RMC_MAX_LEN) && ((strcpy(GPS_DMA_RecBuf+start+1, (const char *)("$GNRMC")) == 0)))//find the frame
 			{
 					cp_st = start;		
 					break;
