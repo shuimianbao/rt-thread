@@ -626,7 +626,7 @@ int nmea_parser_pop(nmeaPARSER *parser, void **pack_ptr)
 */ 
 int nmea_parse(
 	nmeaPARSER *parser,
-	const char *buff, int buff_sz,
+	char *buff, int buff_sz,
 	nmeaINFO *info )
 {
 	int ptype, nread = 0;

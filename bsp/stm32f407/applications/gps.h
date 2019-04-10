@@ -70,6 +70,7 @@ extern rt_thread_t gps_thread;
 
 static void GPS_COM_Config(void);
 void gps_thread_entry(void* parameter);
+rt_uint8_t processdata(rt_uint8_t bufindex);
 
 #endif
 

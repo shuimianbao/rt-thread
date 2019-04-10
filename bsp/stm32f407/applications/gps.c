@@ -2,8 +2,8 @@
 #include "stm32f4xx.h"
 #include <string.h>
 #include "gps.h"
-
-#include "lte.h"
+#include "gprmc.h"
+//#include "lte.h"
 
 rt_thread_t gps_thread;
 static rt_int8_t GPS_DMA_RecBuf[GPSBUFFERSIZE];
@@ -141,18 +141,39 @@ static void GPS_COM_Config(void)
   USART_Cmd(GPS_COM, ENABLE);
 }
 
+/*
+index=1
+$GNRMC,164756.301,A,3202.8759,N,11855.7195,E,0.267,0.00,100419,,,A*49
+index=0
+$GNRMC,164759.000,A,3202.8759,N,11855.7182,E,0.132,0.00,100419,,,A*41
+index=1
+$GNRMC,164800.000,A,3202.8764,N,11855.7180,E,0.330,0.00,100419,,,A*4E
+index=0
+$GNRMC,164801.000,A,3202.8768,N,11855.7186,E,0.257,0.00,100419,,,A*45
+index=1
+$GNRMC,164802.000,A,3202.8776,N,11855.7196,E,0.235,0.00,100419,,,A*4C
+index=0
+$GNRMC,164804.000,A,3202.8787,N,11855.7216,E,0.266,0.00,100419,,,A*49
+*/
+#if 1
 rt_uint8_t processdata(rt_uint8_t bufindex)
 {
-	rt_uint16_t start = bufindex;
-	rt_uint16_t end = bufindex + GPSBUFFERSIZE/2;
+	rt_uint16_t start = bufindex * GPSBUFFERSIZE/2;
+	rt_uint16_t end = start + GPSBUFFERSIZE/2;
 	rt_uint16_t cp_st, cp_end,temp=0;
 	rt_uint16_t i;
-	
+	//
+	/*
+	nmeaINFO info;
+    nmeaPARSER parser;
+    nmea_zero_INFO(&info);
+    nmea_parser_init(&parser);
+	*/
 	while(start< end)
 	{
 		if(GPS_DMA_RecBuf[start] == '$')//search the first char '$'
 		{
-			if(((end-start)>= RMC_MAX_LEN) && ((strcpy(GPS_DMA_RecBuf+start+1, (const char *)("$GNRMC")) == 0)))//find the frame
+			if(((end-start)>= RMC_MAX_LEN) && ((memcmp(GPS_DMA_RecBuf+start+1, (const char *)("GNRMC"),5) == 0)))//find the frame
 			{
 					cp_st = start;		
 					break;
@@ -164,7 +185,7 @@ rt_uint8_t processdata(rt_uint8_t bufindex)
 			return 0;
 	while(start< end)
 	{
-		if(GPS_DMA_RecBuf[start] == '\r')
+		if(GPS_DMA_RecBuf[start] == '\n')
 		{
 			cp_end = start;
 			break;
@@ -179,16 +200,74 @@ rt_uint8_t processdata(rt_uint8_t bufindex)
 	rt_kprintf("index=%d\n",bufindex);//test
 	for(i=0;i<cp_end-cp_st+1;i++)
 		rt_kprintf("%c",GNMRC_Buf[i]);
-
+/*
+		nmea_parse(&parser, GNMRC_Buf, (cp_end-cp_st+1), &info);
+	if(info.fix ==1)
+		rt_kprintf("Fix not available\n");
+	else if(info.fix ==2)
+		rt_kprintf("2D available\n");
+	else if(info.fix ==3)
+		rt_kprintf("3D available\n");
+	rt_kprintf("time:%d-%d-%d %d:%d:%d\n",info.utc.year,info.utc.mon, info.utc.day, info.utc.hour, info.utc.min, info.utc.sec);
+	rt_kprintf("lat:%f,lon:%d\n",info.lat,info.lon);
+    nmea_parser_destroy(&parser);
+	*/
 	//prase GNMRC
 	
 	
 	
 }
+#else
+rt_uint8_t processdata(rt_uint8_t bufindex)
+{
+	rt_uint16_t start = 0;
+	rt_uint16_t end = GPSBUFFERSIZE/2;
+	rt_uint16_t cp_st, cp_end,temp=0;
+	rt_uint16_t i;
+	rt_int8_t tempbuf[GPSBUFFERSIZE/2];
+	memcpy(tempbuf,GPS_DMA_RecBuf+bufindex*GPSBUFFERSIZE/2, GPSBUFFERSIZE/2);
+	
+	while(start< end)
+	{
+		if(tempbuf[start] == '$')//search the first char '$'
+		{
+			if(((end-start)>= RMC_MAX_LEN) && ((memcmp(tempbuf+start+1, (const char *)("GNRMC"),5) == 0)))//find the frame
+			{
+					cp_st = start;		
+					break;
+			}
+		}//if(GPS_DMA_RecBuf[start] == '$')
+		start++;
+	}//while(start< end)
+	if(start == end)//faild
+			return 0;
+	while(start< end)
+	{
+		if(tempbuf[start] == '\n')
+		{
+			cp_end = start;
+			break;
+		}
+		start++;
+	}
+	
+	if(start == end)//faild
+			return 0;
+	memcpy(GNMRC_Buf,tempbuf+cp_st,cp_end-cp_st+1);
+
+	rt_kprintf("index=%d\n",bufindex);//test
+	for(i=0;i<cp_end-cp_st+1;i++)
+		rt_kprintf("%c",GNMRC_Buf[i]);
+
+	//prase GNMRC
+	
+}
+#endif
 void gps_thread_entry(void* parameter)
 {
 	rt_err_t  result;
 	rt_uint8_t i;
+	rt_uint16_t x;
 rt_uint8_t MRC_Serach_flag = MRC_SEARCH_NEW;
 	GPS_COM_Config();
 	result  =  rt_sem_init(&gps_sem,  "gpssem",  0,  RT_IPC_FLAG_FIFO);
@@ -203,18 +282,18 @@ rt_uint8_t MRC_Serach_flag = MRC_SEARCH_NEW;
 		 rt_sem_take(&gps_sem,  RT_WAITING_FOREVER);
 		 if(GPS_Buf_Flag & 0xf)//HT
 		 {
-		 	//for(i=0;i<100;i++)
-			//	rt_kprintf("%c",GPS_DMA_RecBuf[i]);
+		 	//for(x=0;x<512;x++)
+			//	rt_kprintf("%c",GPS_DMA_RecBuf[x]);
 			// rt_kprintf("recv half len\n");
-			// i = 
+			i = processdata(0);
 			GPS_Buf_Flag &=0xf0;
 		 }
 		  if(GPS_Buf_Flag & 0xf0)//TC
 		 {
-		 	//for(i=100;i<200;i++)
-			//	rt_kprintf("%c",GPS_DMA_RecBuf[i]);
+		 //	for(x=512;x<1024;x++)
+			//	rt_kprintf("%c",GPS_DMA_RecBuf[x]);
 			//rt_kprintf("recv all len\n");
-
+			i = processdata(1);
 			GPS_Buf_Flag &=0x0f;
 		 }
 		 rt_sem_release(&gps_sem);

@@ -199,7 +199,7 @@ int nmea_parser_real_push(nmeaPARSER *parser, const char *buff, int buff_sz) ;
 int nmea_parser_push(nmeaPARSER *parser, const char *buff, int buff_sz) ;
 void nmea_GPRMC2info(nmeaGPRMC *pack, nmeaINFO *info) ;
 int nmea_parser_pop(nmeaPARSER *parser, void **pack_ptr) ;
-int nmea_parse(	nmeaPARSER *parser,	const char *buff, int buff_sz,	nmeaINFO *info );
+int nmea_parse(	nmeaPARSER *parser,	char *buff, int buff_sz,	nmeaINFO *info );
 
 
 #endif
