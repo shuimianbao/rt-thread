@@ -1,8 +1,11 @@
 #include <rtthread.h>
 #include "stm32f4xx.h"
-#include <string.h>
+#include<stdio.h>
+#include<string.h>
+#include<math.h>
+
 #include "gps.h"
-#include "gprmc.h"
+//#include "gprmc.h"
 //#include "lte.h"
 
 rt_thread_t gps_thread;
@@ -13,6 +16,125 @@ static rt_uint8_t GPS_Buf_Flag=0;
 static  struct  rt_semaphore  gps_sem;
 static rt_int8_t GNMRC_Buf[80]={0};
 static rt_uint8_t GNMRC_Buf_Index = 0;
+GPS_INFO GPS_Data;
+
+unsigned char CalcCheck(char* Bytes,int len)
+{
+	int i;
+	unsigned char result;
+	for (result = Bytes[0], i = 1; i < len ; i++)
+	{
+		result ^= Bytes[i];
+	}
+	return result;
+}
+//// 计算时区函数，根据经度来计算
+char calculateTimezone(double lat,double lon)
+{
+ int a,b,c,timezone;
+ a = (int)(fabs(lon)+0.5);// 对经度进行四舍五入，且取正整数
+ b = a/15; // 商
+ c = a%15; // 余数
+ if((lat >=17.9 && lat <=53 && lon>=75 && lon<=125) || (lat>=40 && lat <=53 && lon>=125 && lon<= 135))
+ {// 如果经纬度处于中国版图内，则都划为东8区，为什么要这样划分详见第三节 
+	timezone = 8; 
+ } 
+ else
+ {
+	if(c > 7.5)
+		timezone = b+1; 
+	else 
+		timezone = b; 
+	
+	if(lon > 0.0f)
+		timezone = timezone;
+	else 
+		timezone = (-1)*timezone; 
+ } 
+ return (char)timezone; 
+}
+
+// UTC时间转换为本地时间函数 
+void UTCTOLocalTime(char timezone,UTC_TIME utc_time,LOCAL_TIME * local_time)
+{
+ int year,month,day,hour;
+ int lastday = 0;// 月的最后一天的日期
+ int lastlastday = 0;// 上月的最后一天的日期
+ 
+ year = utc_time.year; //已知的UTC时间
+ month = utc_time.month;//已知的UTC时间
+ day = utc_time.day;//已知的UTC时间
+ hour = utc_time.hour + timezone; //已知的UTC时间
+ 
+ if(month==1 || month==3 || month==5 || month==7 || month==8 || month==10 || month==12)
+ { 
+	lastday = 31; 
+	if(month == 3)
+	{
+		if((year%400 == 0)||(year%4 == 0 && year%100 != 0))//判断是否为闰年，年号能被400整除或年号能被4整除，而不能被100整除为闰年
+			lastlastday = 29;// 闰年的2月为29天，平年为28天
+		else 
+			lastlastday = 28; 
+	} 
+	
+	if(month == 8) 
+		lastlastday = 31; 
+  } 
+  else if(month == 4 || month == 6 || month == 9 || month == 11)
+  { 
+	lastday = 30; 
+	lastlastday = 31; 
+  } 
+  else
+  { 
+	lastlastday = 31; 
+	if((year%400 == 0)||(year%4 == 0 && year%100 != 0))// 闰年的2月为29天，平年为28天
+		lastday = 29; 
+	else 
+		lastday = 28; 
+   } 
+   
+   if(hour >= 24)
+   {// 当算出的区时大于或等于24:00时，应减去24:00，日期加一天
+		hour -= 24; 
+		day += 1; 
+		if(day > lastday)
+		{ // 当算出的日期大于该月最后一天时，应减去该月最后一天的日期，月份加上一个月
+			day -= lastday; 
+			month += 1; 
+			if(month > 12)
+			{// 当算出的月份大于12时，应减去12，年份加上一年 
+				month -= 12; 
+				year += 1; 
+			} 
+		} 
+	} 
+	
+	if(hour < 0)
+	{// 当算出的区时为负数时，应加上24:00，日期减一天 
+		hour += 24; 
+		day -= 1; 
+		if(day < 1)
+		{ // 当算出的日期为0时，日期变为上一月的最后一天，月份减去一个月 
+			day = lastlastday; 
+			month -= 1; 
+			if(month < 1)
+			{ // 当算出的月份为0时，月份变为12月，年份减去一年 
+				month = 12; 
+				year -= 1; 
+			} 
+		} 
+	} 
+	//得到转换后的本地时间 
+	local_time->year = year; 
+	local_time->month = month; 
+	local_time->day = day; 
+	local_time->hour = hour; 
+	local_time->minute = utc_time.minute;
+	local_time->second = utc_time.second;
+}
+
+
 static void GPS_COM_Config(void)
 {
   	USART_InitTypeDef USART_InitStructure;
@@ -120,7 +242,7 @@ static void GPS_COM_Config(void)
                                        GPS_RX_DMA_FLAG_HTIF | GPS_RX_DMA_FLAG_TCIF);
 
   /* Enable the DMA Channels Interrupts */
-  DMA_ITConfig(GPS_RX_DMA_STREAM, DMA_IT_TC | DMA_IT_HT, ENABLE);
+  DMA_ITConfig(GPS_RX_DMA_STREAM, DMA_IT_TC /*| DMA_IT_HT*/, ENABLE);//disable half transfer interrupt
 
   
   NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
@@ -156,6 +278,129 @@ index=0
 $GNRMC,164804.000,A,3202.8787,N,11855.7216,E,0.266,0.00,100419,,,A*49
 */
 #if 1
+rt_uint8_t processdata(/*rt_uint8_t bufindex*/void)
+{
+	rt_uint16_t start = GPSBUFFERSIZE;
+	rt_uint16_t end = GPSBUFFERSIZE;
+	rt_uint16_t cp_st, cp_end,temp=0;
+	rt_uint16_t i;
+	
+	unsigned char ret,lat_suffex, lon_suffex,position_valid,timezone;
+	unsigned char len,x,checksum;
+	unsigned int time,date;
+	double latitude  ,longitude,du,fen; 
+	
+	do
+	{
+		start--;
+		if(GPS_DMA_RecBuf[start] == '$')//search the first char '$'
+		{
+			if(((end-start)>= RMC_MAX_LEN) && ((memcmp(GPS_DMA_RecBuf+start+1, (const char *)("GNRMC"),5) == 0)))//find the frame
+			{
+					cp_st = start;		
+					break;
+			}
+		}//if(GPS_DMA_RecBuf[start] == '$')
+		
+	}while(start>0);//reach the top of the buffer
+		//while(start< end)
+	if(start == 0)//faild
+			return 0;
+	while(start< end)
+	{
+		if(GPS_DMA_RecBuf[start] == '\n')
+		{
+			cp_end = start;
+			break;
+		}
+		start++;
+	}
+	
+	if(start == end)//faild
+			return 0;
+	memcpy(GNMRC_Buf,GPS_DMA_RecBuf+cp_st,cp_end-cp_st+1);
+
+	//rt_kprintf("index=%d\n",bufindex);//test
+	for(i=0;i<cp_end-cp_st+1;i++)
+		rt_kprintf("%c",GNMRC_Buf[i]);
+
+	//prase GNMRC
+	
+
+	//char teststr[]="$GNRMC,164804.000,A,3202.8787,N,11855.7216,E,0.266,0.00,100419,,,A*49\r\n";
+	//rt_kprintf("strlen %d\n",strlen(teststr));
+	//len = cp_end-cp_st+1;//strlen(teststr);
+	//ret = CalcCheck(GNMRC_Buf+1,strlen(teststr)-6);
+	len = cp_end-cp_st+1;
+	ret = CalcCheck(GNMRC_Buf+1,len-6);
+	rt_kprintf("check sum:%d,%x\n",ret,ret);
+	
+	for(x=0;x<len;x++)
+	{
+		if(GNMRC_Buf[x]=='*')
+			break;		
+	}
+	checksum = (GNMRC_Buf[x+1]-'0')*16+ (GNMRC_Buf[x+2]-'0');
+	//printf("check sum1:%d,%x\n",checksum,checksum);
+	if(ret != checksum)
+	{
+		rt_kprintf("check sum error\n");
+		return 0;
+	}
+	
+	sscanf(GNMRC_Buf,"$GNRMC,%d.%*d,%c,%lf,%c,%lf,%c,%*f,%*f,%d,%*s\r\n",
+				           &time, &GPS_Data.vaild,
+						   &latitude, &lat_suffex,
+						   &longitude,&lon_suffex, 
+						   &date);
+						   
+	GPS_Data.utc_time.second = 	time%100;
+	time /=100;
+	GPS_Data.utc_time.minute = time%100;
+	time /=100;
+	GPS_Data.utc_time.hour = time;
+	
+	GPS_Data.utc_time.year = date%100 +2000;
+	date /=100;
+	GPS_Data.utc_time.month = date%100;
+	date /=100;
+	GPS_Data.utc_time.day = date;
+	
+	rt_kprintf("\n%lf\n",latitude);
+	du = (double)(((long)latitude)/100);
+	fen = latitude - du*100;
+	rt_kprintf("%lf,%lf\n",du,fen);
+	GPS_Data.latitude = du+ fen/60.0;
+	
+	rt_kprintf("\n%lf\n",longitude);
+	du = (double)(((long)longitude)/100);
+	fen = longitude - du*100;
+	rt_kprintf("%lf,%lf\n",du,fen);
+	GPS_Data.longitude = du+ fen/60.0;
+	
+	if(lat_suffex == 'S')
+		GPS_Data.latitude *=-1.0;
+	if(lon_suffex == 'W')
+		GPS_Data.longitude *=-1.0;
+	
+	//printf("time=%d,position_valid=%c,latitude=%lf,lat_suffex=%c,longitude=%lf,lon_suffex=%c,date=%d\n",
+	//					   time, GPS_Data.vaild,
+	//					   latitude, lat_suffex,
+	//					   longitude,lon_suffex, 
+	//					   date);
+	timezone = calculateTimezone(GPS_Data.latitude,GPS_Data.longitude);
+	UTCTOLocalTime(timezone,GPS_Data.utc_time,&(GPS_Data.local_time));
+	rt_kprintf("UTC TIME:%d-%d-%d %d:%d:%d\n",
+			GPS_Data.utc_time.year,GPS_Data.utc_time.month,GPS_Data.utc_time.day,
+			GPS_Data.utc_time.hour,GPS_Data.utc_time.minute,GPS_Data.utc_time.second);
+	rt_kprintf("LOCAL TIME:%d-%d-%d %d:%d:%d\n",
+			GPS_Data.local_time.year,GPS_Data.local_time.month,GPS_Data.local_time.day,
+			GPS_Data.local_time.hour,GPS_Data.local_time.minute,GPS_Data.local_time.second);
+	rt_kprintf("Position :%c,lat:%lf,lon:%lf\n",GPS_Data.vaild,GPS_Data.latitude,GPS_Data.longitude);
+	return 1;
+	
+}
+#else
 rt_uint8_t processdata(rt_uint8_t bufindex)
 {
 	rt_uint16_t start = bufindex * GPSBUFFERSIZE/2;
@@ -217,7 +462,7 @@ rt_uint8_t processdata(rt_uint8_t bufindex)
 	
 	
 }
-#else
+
 rt_uint8_t processdata(rt_uint8_t bufindex)
 {
 	rt_uint16_t start = 0;
@@ -270,16 +515,19 @@ void gps_thread_entry(void* parameter)
 	rt_uint16_t x;
 rt_uint8_t MRC_Serach_flag = MRC_SEARCH_NEW;
 	GPS_COM_Config();
+	GPS_Data.vaild = 'V';
 	result  =  rt_sem_init(&gps_sem,  "gpssem",  0,  RT_IPC_FLAG_FIFO);
 	if  (result  !=  RT_EOK)
 	{
 		rt_kprintf("GPS sem init faild[%d]\n",result);
 	}
+	
 	while(1)
 	{
 		//rt_thread_delay(RT_TICK_PER_SECOND*10);
 		//ShowADCResult();
 		 rt_sem_take(&gps_sem,  RT_WAITING_FOREVER);
+		/*
 		 if(GPS_Buf_Flag & 0xf)//HT
 		 {
 		 	//for(x=0;x<512;x++)
@@ -288,6 +536,7 @@ rt_uint8_t MRC_Serach_flag = MRC_SEARCH_NEW;
 			i = processdata(0);
 			GPS_Buf_Flag &=0xf0;
 		 }
+		 
 		  if(GPS_Buf_Flag & 0xf0)//TC
 		 {
 		 //	for(x=512;x<1024;x++)
@@ -296,10 +545,12 @@ rt_uint8_t MRC_Serach_flag = MRC_SEARCH_NEW;
 			i = processdata(1);
 			GPS_Buf_Flag &=0x0f;
 		 }
+		 */
+		 i = processdata();
 		 rt_sem_release(&gps_sem);
 	}
 }
-
+#if 0
 void GPS_COM_ISR(void)
 {
 unsigned char ch;
@@ -321,20 +572,21 @@ unsigned char ch;
    
   }
 }
-
+#endif
 void GPS_DMA_RX_IRQHandler(void)
 {
+	/*
 	if(DMA_GetITStatus(GPS_RX_DMA_STREAM,GPS_RX_DMA_IT_HTIF)==SET)
 	{
 		DMA_ClearITPendingBit(GPS_RX_DMA_STREAM,GPS_RX_DMA_IT_HTIF);
 		GPS_Buf_Flag |= 0x1;
 		rt_sem_release(&gps_sem);
 	}
-
+	*/
 	if(DMA_GetITStatus(GPS_RX_DMA_STREAM,GPS_RX_DMA_IT_TCIF)==SET)
 	{
 		DMA_ClearITPendingBit(GPS_RX_DMA_STREAM,GPS_RX_DMA_IT_TCIF);
-		GPS_Buf_Flag |= 0x10;
+		//GPS_Buf_Flag |= 0x10;
 		rt_sem_release(&gps_sem);
 	}
 } 

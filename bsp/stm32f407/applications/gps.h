@@ -66,11 +66,41 @@
 #define RMC_MAX_LEN		(70+5)
 #define MRC_SEARCH_NEW		0
 #define MRC_SEARCH_MEXT		1
+
+typedef struct{
+	unsigned int year;
+	unsigned char month;
+	unsigned char day;
+	unsigned char hour;
+	unsigned char minute;
+	unsigned char second;
+}UTC_TIME;
+typedef struct{
+	unsigned int year;
+	unsigned char month;
+	unsigned char day;
+	unsigned char hour;
+	unsigned char minute;
+	unsigned char second;
+}LOCAL_TIME;
+typedef struct{
+	unsigned char vaild;
+	UTC_TIME utc_time;
+	LOCAL_TIME local_time;
+	double latitude;
+	double longitude;
+	
+}GPS_INFO;
+
+
 extern rt_thread_t gps_thread;
 
 static void GPS_COM_Config(void);
 void gps_thread_entry(void* parameter);
-rt_uint8_t processdata(rt_uint8_t bufindex);
+rt_uint8_t processdata(/*rt_uint8_t bufindex*/void);
+unsigned char CalcCheck(char* Bytes,int len);
+char calculateTimezone(double lat,double lon);
+void UTCTOLocalTime(char timezone,UTC_TIME utc_time,LOCAL_TIME * local_time);
 
 #endif
 
