@@ -436,11 +436,6 @@
               <FileType>1</FileType>
               <FilePath>.\applications\lcd.c</FilePath>
             </File>
-            <File>
-              <FileName>gprmc.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\applications\gprmc.c</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>

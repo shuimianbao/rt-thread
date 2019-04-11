@@ -78,7 +78,7 @@ void rt_init_thread_entry(void* parameter)
 		/* Create gps thread */
     gps_thread = rt_thread_create("gps",
     		gps_thread_entry, RT_NULL,
-    		256, 20, 20);
+    		0x1000, 20, 20);
     if(gps_thread != RT_NULL)
     	rt_thread_startup(gps_thread);
 		

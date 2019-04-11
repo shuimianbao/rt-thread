@@ -84,11 +84,11 @@ typedef struct{
 	unsigned char second;
 }LOCAL_TIME;
 typedef struct{
-	unsigned char vaild;
-	UTC_TIME utc_time;
-	LOCAL_TIME local_time;
-	double latitude;
-	double longitude;
+	unsigned char vaild;//'A'定位有效，'V‘定位无效
+	UTC_TIME utc_time;//UTC时间
+	LOCAL_TIME local_time;//本地时间
+	double latitude;//纬度，单位为度，正数表示北纬，负数表示南纬
+	double longitude;//经度，单位为度，正数表示东经，负数表示西经
 	
 }GPS_INFO;
 

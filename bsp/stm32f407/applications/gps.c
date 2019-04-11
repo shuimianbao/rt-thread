@@ -9,13 +9,13 @@
 //#include "lte.h"
 
 rt_thread_t gps_thread;
-static rt_int8_t GPS_DMA_RecBuf[GPSBUFFERSIZE];
-static rt_uint8_t GPS_DMA_RecBuf_NewP=0;
-static rt_uint8_t GPS_DMA_RecBuf_OldP=0;
-static rt_uint8_t GPS_Buf_Flag=0;
-static  struct  rt_semaphore  gps_sem;
-static rt_int8_t GNMRC_Buf[80]={0};
-static rt_uint8_t GNMRC_Buf_Index = 0;
+char GPS_DMA_RecBuf[GPSBUFFERSIZE];
+rt_uint8_t GPS_DMA_RecBuf_NewP=0;
+rt_uint8_t GPS_DMA_RecBuf_OldP=0;
+rt_uint8_t GPS_Buf_Flag=0;
+struct  rt_semaphore  gps_sem;
+char GNMRC_Buf[80]={0};
+rt_uint8_t GNMRC_Buf_Index = 0;
 GPS_INFO GPS_Data;
 
 unsigned char CalcCheck(char* Bytes,int len)
@@ -321,30 +321,35 @@ rt_uint8_t processdata(/*rt_uint8_t bufindex*/void)
 	memcpy(GNMRC_Buf,GPS_DMA_RecBuf+cp_st,cp_end-cp_st+1);
 
 	//rt_kprintf("index=%d\n",bufindex);//test
-	for(i=0;i<cp_end-cp_st+1;i++)
-		rt_kprintf("%c",GNMRC_Buf[i]);
+	//for(i=0;i<cp_end-cp_st+1;i++)
+	//	rt_kprintf("%c",GNMRC_Buf[i]);
 
 	//prase GNMRC
-	
 
-	//char teststr[]="$GNRMC,164804.000,A,3202.8787,N,11855.7216,E,0.266,0.00,100419,,,A*49\r\n";
-	//rt_kprintf("strlen %d\n",strlen(teststr));
-	//len = cp_end-cp_st+1;//strlen(teststr);
-	//ret = CalcCheck(GNMRC_Buf+1,strlen(teststr)-6);
 	len = cp_end-cp_st+1;
 	ret = CalcCheck(GNMRC_Buf+1,len-6);
-	rt_kprintf("check sum:%d,%x\n",ret,ret);
-	
+	//rt_kprintf("check sum:%d,%x\n",ret,ret);
+
 	for(x=0;x<len;x++)
 	{
 		if(GNMRC_Buf[x]=='*')
 			break;		
 	}
-	checksum = (GNMRC_Buf[x+1]-'0')*16+ (GNMRC_Buf[x+2]-'0');
+	if(GNMRC_Buf[x+1]<='9')
+		checksum = (GNMRC_Buf[x+1]-'0')*16;
+	else
+		checksum = (GNMRC_Buf[x+1]-'A'+10)*16;
+	
+	if(GNMRC_Buf[x+2]<='9')
+		checksum += (GNMRC_Buf[x+2]-'0');
+	else
+		checksum += (GNMRC_Buf[x+2]-'A'+10);
+	
+	//checksum = (GNMRC_Buf[x+1]-'0')*16+ (GNMRC_Buf[x+2]-'0');
 	//printf("check sum1:%d,%x\n",checksum,checksum);
 	if(ret != checksum)
 	{
-		rt_kprintf("check sum error\n");
+		rt_kprintf("check sum error[%d:%d]\n",ret,checksum);
 		return 0;
 	}
 	
@@ -353,7 +358,7 @@ rt_uint8_t processdata(/*rt_uint8_t bufindex*/void)
 						   &latitude, &lat_suffex,
 						   &longitude,&lon_suffex, 
 						   &date);
-						   
+	//rt_kprintf("lat:%f,lon:%f\n",latitude,longitude);					   
 	GPS_Data.utc_time.second = 	time%100;
 	time /=100;
 	GPS_Data.utc_time.minute = time%100;
@@ -366,16 +371,16 @@ rt_uint8_t processdata(/*rt_uint8_t bufindex*/void)
 	date /=100;
 	GPS_Data.utc_time.day = date;
 	
-	rt_kprintf("\n%lf\n",latitude);
+	//rt_kprintf("\n%lf\n",latitude);
 	du = (double)(((long)latitude)/100);
 	fen = latitude - du*100;
-	rt_kprintf("%lf,%lf\n",du,fen);
+	//rt_kprintf("%lf,%lf\n",du,fen);
 	GPS_Data.latitude = du+ fen/60.0;
 	
-	rt_kprintf("\n%lf\n",longitude);
+	//rt_kprintf("\n%lf\n",longitude);
 	du = (double)(((long)longitude)/100);
 	fen = longitude - du*100;
-	rt_kprintf("%lf,%lf\n",du,fen);
+	//rt_kprintf("%lf,%lf\n",du,fen);
 	GPS_Data.longitude = du+ fen/60.0;
 	
 	if(lat_suffex == 'S')
@@ -390,13 +395,14 @@ rt_uint8_t processdata(/*rt_uint8_t bufindex*/void)
 	//					   date);
 	timezone = calculateTimezone(GPS_Data.latitude,GPS_Data.longitude);
 	UTCTOLocalTime(timezone,GPS_Data.utc_time,&(GPS_Data.local_time));
-	rt_kprintf("UTC TIME:%d-%d-%d %d:%d:%d\n",
-			GPS_Data.utc_time.year,GPS_Data.utc_time.month,GPS_Data.utc_time.day,
-			GPS_Data.utc_time.hour,GPS_Data.utc_time.minute,GPS_Data.utc_time.second);
-	rt_kprintf("LOCAL TIME:%d-%d-%d %d:%d:%d\n",
-			GPS_Data.local_time.year,GPS_Data.local_time.month,GPS_Data.local_time.day,
-			GPS_Data.local_time.hour,GPS_Data.local_time.minute,GPS_Data.local_time.second);
-	rt_kprintf("Position :%c,lat:%lf,lon:%lf\n",GPS_Data.vaild,GPS_Data.latitude,GPS_Data.longitude);
+	//rt_kprintf("UTC TIME:%d-%d-%d %d:%d:%d\n",
+	//		GPS_Data.utc_time.year,GPS_Data.utc_time.month,GPS_Data.utc_time.day,
+	//		GPS_Data.utc_time.hour,GPS_Data.utc_time.minute,GPS_Data.utc_time.second);
+	//rt_kprintf("LOCAL TIME:%d-%d-%d %d:%d:%d\n",
+	//		GPS_Data.local_time.year,GPS_Data.local_time.month,GPS_Data.local_time.day,
+	//		GPS_Data.local_time.hour,GPS_Data.local_time.minute,GPS_Data.local_time.second);
+	//rt_kprintf("Position :%c,lat:%lf,lon:%lf\n",GPS_Data.vaild,GPS_Data.latitude,GPS_Data.longitude);
+
 	return 1;
 	
 }
@@ -533,7 +539,7 @@ rt_uint8_t MRC_Serach_flag = MRC_SEARCH_NEW;
 		 	//for(x=0;x<512;x++)
 			//	rt_kprintf("%c",GPS_DMA_RecBuf[x]);
 			// rt_kprintf("recv half len\n");
-			i = processdata(0);
+			//i = processdata(0);
 			GPS_Buf_Flag &=0xf0;
 		 }
 		 
@@ -542,12 +548,13 @@ rt_uint8_t MRC_Serach_flag = MRC_SEARCH_NEW;
 		 //	for(x=512;x<1024;x++)
 			//	rt_kprintf("%c",GPS_DMA_RecBuf[x]);
 			//rt_kprintf("recv all len\n");
-			i = processdata(1);
+			//i = processdata(1);
+			 i = processdata();
 			GPS_Buf_Flag &=0x0f;
 		 }
 		 */
 		 i = processdata();
-		 rt_sem_release(&gps_sem);
+		 //rt_sem_release(&gps_sem);
 	}
 }
 #if 0
@@ -575,18 +582,24 @@ unsigned char ch;
 #endif
 void GPS_DMA_RX_IRQHandler(void)
 {
+	static char count =0;
 	/*
 	if(DMA_GetITStatus(GPS_RX_DMA_STREAM,GPS_RX_DMA_IT_HTIF)==SET)
 	{
 		DMA_ClearITPendingBit(GPS_RX_DMA_STREAM,GPS_RX_DMA_IT_HTIF);
 		GPS_Buf_Flag |= 0x1;
-		rt_sem_release(&gps_sem);
+		//rt_sem_release(&gps_sem);
 	}
 	*/
 	if(DMA_GetITStatus(GPS_RX_DMA_STREAM,GPS_RX_DMA_IT_TCIF)==SET)
 	{
 		DMA_ClearITPendingBit(GPS_RX_DMA_STREAM,GPS_RX_DMA_IT_TCIF);
-		//GPS_Buf_Flag |= 0x10;
-		rt_sem_release(&gps_sem);
+		count++;
+		if(count==10)
+		{
+			count=0;
+			//GPS_Buf_Flag |= 0x10;
+			rt_sem_release(&gps_sem);
+		}		
 	}
 } 
