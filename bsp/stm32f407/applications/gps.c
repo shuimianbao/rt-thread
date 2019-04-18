@@ -36,7 +36,7 @@ char calculateTimezone(double lat,double lon)
  b = a/15; // 商
  c = a%15; // 余数
  if((lat >=17.9 && lat <=53 && lon>=75 && lon<=125) || (lat>=40 && lat <=53 && lon>=125 && lon<= 135))
- {// 如果经纬度处于中国版图内，则都划为东8区，为什么要这样划分详见第三节 
+ {// 如果经纬度处于中国版图内，则都划为东8区
 	timezone = 8; 
  } 
  else
@@ -386,7 +386,7 @@ rt_uint8_t processdata(/*rt_uint8_t bufindex*/void)
 	if(lat_suffex == 'S')
 		GPS_Data.latitude *=-1.0;
 	if(lon_suffex == 'W')
-		GPS_Data.longitude *=-1.0;
+		GPS_Data.longitude *=-1.0;//
 	
 	//printf("time=%d,position_valid=%c,latitude=%lf,lat_suffex=%c,longitude=%lf,lon_suffex=%c,date=%d\n",
 	//					   time, GPS_Data.vaild,
